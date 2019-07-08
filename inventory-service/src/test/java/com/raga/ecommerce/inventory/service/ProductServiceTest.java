@@ -25,6 +25,9 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class ProductServiceTest {
 
+  private static final String PRODUCT_ID = "prod-456";
+  private static final String ORDER_ID = "order-123";
+
   @Mock
   private ProductRepository productRepository;
 
@@ -44,7 +47,7 @@ public class ProductServiceTest {
     Product watch = new Product("prod-123", "Fasttrack Watch", BigDecimal.valueOf(2222.25));
     List<String> items = newArrayList("item-a1", "item-a2");
     watch.addItems(items);
-    Product laptop = new Product("prod-456", "Lenovo Thinkpad", BigDecimal.valueOf(72222.59));
+    Product laptop = new Product(PRODUCT_ID, "Lenovo Thinkpad", BigDecimal.valueOf(72222.59));
     List<Product> products = newArrayList(watch, laptop);
     when(productRepository.findAll()).thenReturn(products);
 
@@ -55,81 +58,81 @@ public class ProductServiceTest {
 
   @Test(expected = ProductUnavailableException.class)
   public void shouldThrowExceptionIfProductNotAvailable() {
-    when(productRepository.findByProductId("prod-456")).thenReturn(Optional.empty());
+    when(productRepository.findByProductId(PRODUCT_ID)).thenReturn(Optional.empty());
 
-    productService.reserveItems("order-123", "prod-456", 2, BigDecimal.valueOf(2222.25));
+    productService.reserveItems(ORDER_ID, PRODUCT_ID, 2, BigDecimal.valueOf(2222.25));
   }
 
   @Test(expected = ProductUnavailableException.class)
   public void shouldThrowExceptionIfNoItemOfTheProductIsAvailable() {
-    Product watch = new Product("prod-456", "Fasttrack Watch", BigDecimal.valueOf(2222.25));
-    when(productRepository.findByProductId("prod-456")).thenReturn(Optional.of(watch));
+    Product watch = new Product(PRODUCT_ID, "Fasttrack Watch", BigDecimal.valueOf(2222.25));
+    when(productRepository.findByProductId(PRODUCT_ID)).thenReturn(Optional.of(watch));
 
     productService.reserveItems(
-      "order-123", "prod-456", 2, BigDecimal.valueOf(2222.25));
+      ORDER_ID, PRODUCT_ID, 2, BigDecimal.valueOf(2222.25));
   }
 
   @Test(expected = ProductAvailableInLessQuantityException.class)
   public void shouldThrowExceptionIfNotEnoughQuantityOfItemsOfTheProductIsAvailable() {
-    Product watch = new Product("prod-456", "Fasttrack Watch", BigDecimal.valueOf(2222.25));
+    Product watch = new Product(PRODUCT_ID, "Fasttrack Watch", BigDecimal.valueOf(2222.25));
     List<String> items = newArrayList("item-a1", "item-a2");
     watch.addItems(items);
-    when(productRepository.findByProductId("prod-456")).thenReturn(Optional.of(watch));
+    when(productRepository.findByProductId(PRODUCT_ID)).thenReturn(Optional.of(watch));
 
     productService.reserveItems(
-      "order-123", "prod-456", 3, BigDecimal.valueOf(2222.25));
+      ORDER_ID, PRODUCT_ID, 3, BigDecimal.valueOf(2222.25));
   }
 
   @Test(expected = ProductPriceIncreasedException.class)
   public void shouldThrowExceptionIfCurrentPriceIsMoreThanExpectedPrice() {
-    Product watch = new Product("prod-456", "Fasttrack Watch", BigDecimal.valueOf(2222.25));
+    Product watch = new Product(PRODUCT_ID, "Fasttrack Watch", BigDecimal.valueOf(2222.25));
     List<String> items = newArrayList("item-a1", "item-a2");
     watch.addItems(items);
-    when(productRepository.findByProductId("prod-456")).thenReturn(Optional.of(watch));
+    when(productRepository.findByProductId(PRODUCT_ID)).thenReturn(Optional.of(watch));
 
     productService.reserveItems(
-      "order-123", "prod-456", 2, BigDecimal.valueOf(2000.00));
+      ORDER_ID, PRODUCT_ID, 2, BigDecimal.valueOf(2000.00));
   }
 
   @Test
   public void shouldReserveItemsIfAvailableAtExpectedPrice() {
-    Product watch = new Product("prod-456", "Fasttrack Watch", BigDecimal.valueOf(2222.25));
+    Product watch = new Product(PRODUCT_ID, "Fasttrack Watch", BigDecimal.valueOf(2222.25));
     List<String> items = newArrayList("item-a1", "item-a2");
     watch.addItems(items);
-    when(productRepository.findByProductId("prod-456")).thenReturn(Optional.of(watch));
+    when(productRepository.findByProductId(PRODUCT_ID)).thenReturn(Optional.of(watch));
 
     ReserveProductResponse response = productService.reserveItems(
-      "order-123", "prod-456", 2, BigDecimal.valueOf(2222.25));
+      ORDER_ID, PRODUCT_ID, 2, BigDecimal.valueOf(2222.25));
     assertThat(response.getItems()).isEqualTo(items);
     assertThat(response.getCurrentPrice()).isEqualTo(BigDecimal.valueOf(2222.25));
   }
 
   @Test
   public void shouldReserveItemsIfAvailableAtLessThanExpectedPrice() {
-    Product watch = new Product("prod-456", "Fasttrack Watch", BigDecimal.valueOf(2222.25));
+    Product watch = new Product(PRODUCT_ID, "Fasttrack Watch", BigDecimal.valueOf(2222.25));
     List<String> items = newArrayList("item-a1", "item-a2");
     watch.addItems(items);
-    when(productRepository.findByProductId("prod-456")).thenReturn(Optional.of(watch));
+    when(productRepository.findByProductId(PRODUCT_ID)).thenReturn(Optional.of(watch));
 
     ReserveProductResponse response = productService.reserveItems(
-      "order-123", "prod-456", 2, BigDecimal.valueOf(2400.00));
+      ORDER_ID, PRODUCT_ID, 2, BigDecimal.valueOf(2400.00));
     assertThat(response.getItems()).isEqualTo(items);
     assertThat(response.getCurrentPrice()).isEqualTo(BigDecimal.valueOf(2222.25));
   }
 
   @Test
   public void shouldMarkItemAsReserved() {
-    Product watch = new Product("prod-456", "Fasttrack Watch", BigDecimal.valueOf(2222.25));
+    Product watch = new Product(PRODUCT_ID, "Fasttrack Watch", BigDecimal.valueOf(2222.25));
     List<String> items = newArrayList("item-a1");
     watch.addItems(items);
-    when(productRepository.findByProductId("prod-456")).thenReturn(Optional.of(watch));
+    when(productRepository.findByProductId(PRODUCT_ID)).thenReturn(Optional.of(watch));
 
-    productService.reserveItems("order-123", "prod-456", 1, BigDecimal.valueOf(2222.25));
+    productService.reserveItems(ORDER_ID, PRODUCT_ID, 1, BigDecimal.valueOf(2222.25));
 
-    Product expectedProduct = new Product("prod-456", "Fasttrack Watch",
+    Product expectedProduct = new Product(PRODUCT_ID, "Fasttrack Watch",
       BigDecimal.valueOf(2222.25));
     expectedProduct.addItems(items);
-    expectedProduct.getItems().get(0).reserve("order-123");
+    expectedProduct.getItems().get(0).reserve(ORDER_ID);
 
     verify(productRepository, times(1)).save(any());
   }

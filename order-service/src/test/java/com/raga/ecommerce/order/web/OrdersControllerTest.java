@@ -34,6 +34,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class OrdersControllerTest {
 
   private static final String PLACEHOLDER_ERROR_MESSAGE = "Hello";
+  private static final String ACCOUNT_ID = "account-123";
+  private static final String PRODUCT_ID = "prod-123";
+  private static final String ADDRESS_ID = "address-123";
 
   @Autowired
   private MockMvc mockMvc;
@@ -46,8 +49,8 @@ public class OrdersControllerTest {
     when(orderService.placeOrder(anyString(), anyString(), anyInt(), any(), any()))
       .thenReturn("order-456");
 
-    PlaceOrderRequest placeOrderRequest = new PlaceOrderRequest("account-1", "prod-123",
-      2, BigDecimal.valueOf(2222.25), "address-123");
+    PlaceOrderRequest placeOrderRequest = new PlaceOrderRequest(ACCOUNT_ID, PRODUCT_ID,
+      2, BigDecimal.valueOf(2222.25), ADDRESS_ID);
     String jsonRequestBody = jsonRequest(placeOrderRequest);
 
     mockMvc.perform(
@@ -60,11 +63,11 @@ public class OrdersControllerTest {
 
   @Test
   public void shouldShowErrorIfAccountNotFound() throws Exception {
-    when(orderService.placeOrder(eq("account-1"), anyString(), anyInt(), any(), any()))
-      .thenThrow(new AccountNotFoundException("account-1"));
+    when(orderService.placeOrder(eq(ACCOUNT_ID), anyString(), anyInt(), any(), any()))
+      .thenThrow(new AccountNotFoundException(ACCOUNT_ID));
 
-    PlaceOrderRequest placeOrderRequest = new PlaceOrderRequest("account-1", "prod-123",
-      2, BigDecimal.valueOf(2222.25), "address-123");
+    PlaceOrderRequest placeOrderRequest = new PlaceOrderRequest(ACCOUNT_ID, PRODUCT_ID,
+      2, BigDecimal.valueOf(2222.25), ADDRESS_ID);
     String jsonRequestBody = jsonRequest(placeOrderRequest);
 
     mockMvc.perform(
@@ -74,17 +77,17 @@ public class OrdersControllerTest {
       .andExpect(status().isNotFound())
       .andExpect(jsonPath("$.errors[0].code").value("3001"))
       .andExpect(jsonPath("$.errors[0].title").value("Account Not Found"))
-      .andExpect(jsonPath("$.errors[0].message").value("Account not found with id: account-1"));
+      .andExpect(jsonPath("$.errors[0].message").value("Account not found with id: account-123"));
   }
 
   @Test
   public void shouldShowErrorIfGetAccountCallFails() throws Exception {
-    when(orderService.placeOrder(eq("account-1"), anyString(), anyInt(), any(), any()))
+    when(orderService.placeOrder(eq(ACCOUNT_ID), anyString(), anyInt(), any(), any()))
       .thenThrow(HttpClientErrorException.create(INTERNAL_SERVER_ERROR, PLACEHOLDER_ERROR_MESSAGE,
         EMPTY, PLACEHOLDER_ERROR_MESSAGE.getBytes(), defaultCharset()));
 
-    PlaceOrderRequest placeOrderRequest = new PlaceOrderRequest("account-1", "prod-123",
-      2, BigDecimal.valueOf(2222.25), "address-123");
+    PlaceOrderRequest placeOrderRequest = new PlaceOrderRequest(ACCOUNT_ID, PRODUCT_ID,
+      2, BigDecimal.valueOf(2222.25), ADDRESS_ID);
     String jsonRequestBody = jsonRequest(placeOrderRequest);
 
     mockMvc.perform(
@@ -99,11 +102,11 @@ public class OrdersControllerTest {
 
   @Test
   public void shouldShowErrorIfShippingAddressNotFoundForTheAccount() throws Exception {
-    when(orderService.placeOrder(eq("account-1"), anyString(), anyInt(), any(), any()))
-      .thenThrow(new ShippingAddressNotFoundException("account-1", "address-123"));
+    when(orderService.placeOrder(eq(ACCOUNT_ID), anyString(), anyInt(), any(), any()))
+      .thenThrow(new ShippingAddressNotFoundException(ACCOUNT_ID, ADDRESS_ID));
 
-    PlaceOrderRequest placeOrderRequest = new PlaceOrderRequest("account-1", "prod-123",
-      2, BigDecimal.valueOf(2222.25), "address-123");
+    PlaceOrderRequest placeOrderRequest = new PlaceOrderRequest(ACCOUNT_ID, PRODUCT_ID,
+      2, BigDecimal.valueOf(2222.25), ADDRESS_ID);
     String jsonRequestBody = jsonRequest(placeOrderRequest);
 
     mockMvc.perform(
@@ -114,16 +117,16 @@ public class OrdersControllerTest {
       .andExpect(jsonPath("$.errors[0].code").value("3004"))
       .andExpect(jsonPath("$.errors[0].title").value("Shipping address not found"))
       .andExpect(jsonPath("$.errors[0].message")
-        .value("Shipping address not found with addressId: address-123 and accountId: account-1"));
+        .value("Shipping address not found with addressId: address-123 and accountId: account-123"));
   }
 
   @Test
   public void shouldShowErrorIfUnableToReserveItem() throws Exception {
-    when(orderService.placeOrder(anyString(), eq("prod-123"), anyInt(), any(), any()))
+    when(orderService.placeOrder(anyString(), eq(PRODUCT_ID), anyInt(), any(), any()))
       .thenThrow(new ItemReservationFailedException("Product not available with id: prod-123"));
 
-    PlaceOrderRequest placeOrderRequest = new PlaceOrderRequest("account-1", "prod-123",
-      2, BigDecimal.valueOf(2222.25), "address-123");
+    PlaceOrderRequest placeOrderRequest = new PlaceOrderRequest(ACCOUNT_ID, PRODUCT_ID,
+      2, BigDecimal.valueOf(2222.25), ADDRESS_ID);
     String jsonRequestBody = jsonRequest(placeOrderRequest);
 
     mockMvc.perform(

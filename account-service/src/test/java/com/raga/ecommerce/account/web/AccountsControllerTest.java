@@ -29,6 +29,12 @@ public class AccountsControllerTest {
 
   private static final String ACCOUNT_ID = "123";
   private static final String ADDRESS_ID = "456";
+  private static final String LINE_ONE = "Flat 230, A4 Building, Marvel Platina";
+  private static final String LINE_TWO = "near EON IT Park";
+  private static final String CITY = "Pune";
+  private static final String STATE = "Maharashtra";
+  private static final String COUNTRY = "India";
+  private static final String PIN_CODE = "411014";
 
   @Autowired
   private MockMvc mockMvc;
@@ -39,8 +45,8 @@ public class AccountsControllerTest {
   @Test
   public void shouldReturnAccountIfPresent() throws Exception {
     Account account = new Account(ACCOUNT_ID, "John Wayne");
-    account.addAddress(ADDRESS_ID, "Flat 230, A4 Building, Marvel Platina",
-      "near EON IT Park", "Pune", "Maharashtra", "India", "411014");
+    account.addAddress(ADDRESS_ID, LINE_ONE,
+      LINE_TWO, CITY, STATE, COUNTRY, PIN_CODE);
     when(accountService.getAccount(refEq("123"))).thenReturn(account);
 
     mockMvc.perform(
@@ -49,12 +55,12 @@ public class AccountsControllerTest {
       .andExpect(jsonPath("$.accountId").value(ACCOUNT_ID))
       .andExpect(jsonPath("$.name").value("John Wayne"))
       .andExpect(jsonPath("$.addresses[0].addressId").value(ADDRESS_ID))
-      .andExpect(jsonPath("$.addresses[0].lineOne").value("Flat 230, A4 Building, Marvel Platina"))
-      .andExpect(jsonPath("$.addresses[0].lineTwo").value("near EON IT Park"))
-      .andExpect(jsonPath("$.addresses[0].city").value("Pune"))
-      .andExpect(jsonPath("$.addresses[0].state").value("Maharashtra"))
-      .andExpect(jsonPath("$.addresses[0].country").value("India"))
-      .andExpect(jsonPath("$.addresses[0].pinCode").value("411014"));
+      .andExpect(jsonPath("$.addresses[0].lineOne").value(LINE_ONE))
+      .andExpect(jsonPath("$.addresses[0].lineTwo").value(LINE_TWO))
+      .andExpect(jsonPath("$.addresses[0].city").value(CITY))
+      .andExpect(jsonPath("$.addresses[0].state").value(STATE))
+      .andExpect(jsonPath("$.addresses[0].country").value(COUNTRY))
+      .andExpect(jsonPath("$.addresses[0].pinCode").value(PIN_CODE));
   }
 
   @Test
@@ -71,8 +77,8 @@ public class AccountsControllerTest {
 
   @Test
   public void shouldAddAddressIfAccountIsPresent() throws Exception {
-    AddAddressRequest addAddressRequest = new AddAddressRequest("Flat 230, A4 Building, Marvel Platina",
-      "near EON IT Park", "Pune", "Maharashtra", "India", "411014");
+    AddAddressRequest addAddressRequest = new AddAddressRequest(LINE_ONE,
+      LINE_TWO, CITY, STATE, COUNTRY, PIN_CODE);
     String addAddressRequestJson = jsonRequest(addAddressRequest);
 
     mockMvc.perform(
@@ -82,19 +88,19 @@ public class AccountsControllerTest {
       .andExpect(status().isCreated());
 
     verify(accountService, times(1)).addAddress(ACCOUNT_ID,
-      "Flat 230, A4 Building, Marvel Platina", "near EON IT Park",
-      "Pune", "Maharashtra", "India", "411014");
+      LINE_ONE, LINE_TWO,
+      CITY, STATE, COUNTRY, PIN_CODE);
   }
 
   @Test
   public void shouldNotAddAddressAndReturnErrorMessageIfAccountIsNotPresent() throws Exception {
     Mockito.doThrow(new AccountNotFoundException("account-123"))
       .when(accountService)
-      .addAddress("account-123", "Flat 230, A4 Building, Marvel Platina",
-        "near EON IT Park", "Pune", "Maharashtra", "India", "411014");
+      .addAddress("account-123", LINE_ONE,
+        LINE_TWO, CITY, STATE, COUNTRY, PIN_CODE);
 
-    AddAddressRequest addAddressRequest = new AddAddressRequest("Flat 230, A4 Building, Marvel Platina",
-      "near EON IT Park", "Pune", "Maharashtra", "India", "411014");
+    AddAddressRequest addAddressRequest = new AddAddressRequest(LINE_ONE,
+      LINE_TWO, CITY, STATE, COUNTRY, PIN_CODE);
     String addAddressRequestJson = jsonRequest(addAddressRequest);
 
     mockMvc.perform(

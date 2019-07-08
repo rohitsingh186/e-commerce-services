@@ -33,6 +33,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(ProductsController.class)
 public class ProductsControllerTest {
 
+  private static final String PRODUCT_ID = "prod-456";
+  private static final String ORDER_ID = "order-123";
+
   @Autowired
   private MockMvc mockMvc;
 
@@ -42,7 +45,7 @@ public class ProductsControllerTest {
   @Test
   public void shouldReturnAvailableProducts() throws Exception {
     Product watch = new Product("prod-123", "Fasttrack Watch", BigDecimal.valueOf(2222.25));
-    Product laptop = new Product("prod-456", "Lenovo Thinkpad", BigDecimal.valueOf(72222.59));
+    Product laptop = new Product(PRODUCT_ID, "Lenovo Thinkpad", BigDecimal.valueOf(72222.59));
     List<Product> products = newArrayList(watch, laptop);
     when(productService.getAvailableProducts()).thenReturn(products);
 
@@ -53,7 +56,7 @@ public class ProductsControllerTest {
       .andExpect(jsonPath("$.products[0].productName").value("Fasttrack Watch"))
       .andExpect(jsonPath("$.products[0].price").value("2222.25"))
       .andExpect(jsonPath("$.products[0].items").doesNotExist())
-      .andExpect(jsonPath("$.products[1].productId").value("prod-456"))
+      .andExpect(jsonPath("$.products[1].productId").value(PRODUCT_ID))
       .andExpect(jsonPath("$.products[1].productName").value("Lenovo Thinkpad"))
       .andExpect(jsonPath("$.products[1].price").value("72222.59"))
       .andExpect(jsonPath("$.products[1].items").doesNotExist());
@@ -63,10 +66,10 @@ public class ProductsControllerTest {
   public void shouldReserveGivenQuantityOfProductIfAvailable() throws Exception {
     List<String> items = newArrayList("item-a1", "item-a2");
     ReserveProductResponse response = new ReserveProductResponse(items, BigDecimal.valueOf(2000.99));
-    when(productService.reserveItems("order-123", "prod-456", 2,
+    when(productService.reserveItems(ORDER_ID, PRODUCT_ID, 2,
       BigDecimal.valueOf(2222.25))).thenReturn(response);
 
-    ReserveProductRequest reserveProductRequest = new ReserveProductRequest("order-123",
+    ReserveProductRequest reserveProductRequest = new ReserveProductRequest(ORDER_ID,
       2, BigDecimal.valueOf(2222.25));
     String jsonRequest = jsonRequest(reserveProductRequest);
 
@@ -82,10 +85,10 @@ public class ProductsControllerTest {
 
   @Test
   public void shouldShowErrorIfProductNotAvailable() throws Exception {
-    when(productService.reserveItems("order-123", "prod-456", 2,
-      BigDecimal.valueOf(2222.25))).thenThrow(new ProductUnavailableException("prod-456"));
+    when(productService.reserveItems(ORDER_ID, PRODUCT_ID, 2,
+      BigDecimal.valueOf(2222.25))).thenThrow(new ProductUnavailableException(PRODUCT_ID));
 
-    ReserveProductRequest reserveProductRequest = new ReserveProductRequest("order-123",
+    ReserveProductRequest reserveProductRequest = new ReserveProductRequest(ORDER_ID,
       2, BigDecimal.valueOf(2222.25));
     String jsonRequest = jsonRequest(reserveProductRequest);
 
@@ -101,10 +104,10 @@ public class ProductsControllerTest {
 
   @Test
   public void shouldShowErrorIfProductAvailableInLessQuantity() throws Exception {
-    when(productService.reserveItems("order-123", "prod-456", 2,
-      BigDecimal.valueOf(2222.25))).thenThrow(new ProductAvailableInLessQuantityException("prod-456", 2, 1));
+    when(productService.reserveItems(ORDER_ID, PRODUCT_ID, 2,
+      BigDecimal.valueOf(2222.25))).thenThrow(new ProductAvailableInLessQuantityException(PRODUCT_ID, 2, 1));
 
-    ReserveProductRequest reserveProductRequest = new ReserveProductRequest("order-123",
+    ReserveProductRequest reserveProductRequest = new ReserveProductRequest(ORDER_ID,
       2, BigDecimal.valueOf(2222.25));
     String jsonRequest = jsonRequest(reserveProductRequest);
 
@@ -121,12 +124,12 @@ public class ProductsControllerTest {
 
   @Test
   public void shouldShowErrorIfProductPriceIsMoreThanExpected() throws Exception {
-    when(productService.reserveItems("order-123", "prod-456", 2,
+    when(productService.reserveItems(ORDER_ID, PRODUCT_ID, 2,
       BigDecimal.valueOf(2222.25)))
-      .thenThrow(new ProductPriceIncreasedException("prod-456",
+      .thenThrow(new ProductPriceIncreasedException(PRODUCT_ID,
         BigDecimal.valueOf(2222.25), BigDecimal.valueOf(2400.99)));
 
-    ReserveProductRequest reserveProductRequest = new ReserveProductRequest("order-123",
+    ReserveProductRequest reserveProductRequest = new ReserveProductRequest(ORDER_ID,
       2, BigDecimal.valueOf(2222.25));
     String jsonRequest = jsonRequest(reserveProductRequest);
 
